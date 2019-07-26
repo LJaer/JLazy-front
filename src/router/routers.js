@@ -61,10 +61,10 @@ export default [
     children: [
       {
         path: 'level_2_1',
-        name: 'level_2_1',
+        name: '字典管理',
         meta: {
-          icon: 'md-funnel',
-          title: '二级-1'
+          icon: '_dict',
+          title: '字典管理'
         },
         component: () => import('@/view/multilevel/level-2-1.vue')
       },
