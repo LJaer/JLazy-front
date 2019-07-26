@@ -60,13 +60,13 @@ export default [
     component: Main,
     children: [
       {
-        path: 'level_2_1',
-        name: '字典管理',
+        path: 'dict_manager',
+        name: '数据字典管理',
         meta: {
-          icon: '_dict',
-          title: '字典管理'
+          icon: '_dictionary',
+          title: '数据字典管理'
         },
-        component: () => import('@/view/multilevel/level-2-1.vue')
+        component: () => import('@/view/dictionary')
       },
       {
         path: 'level_2_2',
