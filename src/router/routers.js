@@ -66,48 +66,17 @@ export default [
           icon: '_dictionary',
           title: '数据字典管理'
         },
-        component: () => import('@/view/dictionary')
+       component: () => import('@/view/dict-manage')
       },
       {
-        path: 'level_2_2',
-        name: 'level_2_2',
+        path: 'user_manager',
+        name: '用户管理',
         meta: {
-          access: ['super_admin'],
-          icon: 'md-funnel',
-          showAlways: true,
-          title: '二级-2'
+          icon: '_dictionary',
+          title: '用户管理'
         },
-        component: parentView,
-        children: [
-          {
-            path: 'level_2_2_1',
-            name: 'level_2_2_1',
-            meta: {
-              icon: 'md-funnel',
-              title: '三级'
-            },
-            component: () => import('@/view/multilevel/level-2-2/level-2-2-1.vue')
-          },
-          {
-            path: 'level_2_2_2',
-            name: 'level_2_2_2',
-            meta: {
-              icon: 'md-funnel',
-              title: '三级'
-            },
-            component: () => import('@/view/multilevel/level-2-2/level-2-2-2.vue')
-          }
-        ]
+        component: () => import('@/view/dict-manage')
       },
-      {
-        path: 'level_2_3',
-        name: 'level_2_3',
-        meta: {
-          icon: 'md-funnel',
-          title: '二级-3'
-        },
-        component: () => import('@/view/multilevel/level-2-3.vue')
-      }
     ]
   },
   {
@@ -412,7 +381,7 @@ export default [
         component: () => import('@/view/single-page/error-logger.vue')
       }
     ]
-  },
+  },  
   {
     path: '/directive',
     name: 'directive',
