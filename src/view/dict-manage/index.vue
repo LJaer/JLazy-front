@@ -1,14 +1,23 @@
 <template>
   <div>
     <Row>
-      <Col span="5" class-name="left">
-        <Button @click="showAddDitc" type="primary" icon="md-add">添加字典</Button>
-        <tables class="dictlist" ref="tables" v-model="dictlistData" :dictlist="dictlist" />
+      <Col span="9" class-name="left">
+        <Input search enter-button placeholder="请输入字典名称" style="width:300px; float:left;"/>
+        <Button @click="showAddDitc" type="primary" icon="md-add" style="margin-left:10px;">添加字典</Button>
+        <Table border :columns="dictlist" :data="dictlistData" style="margin-top: 10px;">
+          <template slot-scope="{ row }" slot="name">
+            <strong>{{ row.name }}</strong>
+          </template>
+          <template slot-scope="{ row, index }" slot="action">
+            <Button type="primary" size="small" style="margin-right: 5px" @click="show(index)">修改</Button>
+            <Button type="error" size="small" @click="remove(index)">删除</Button>
+          </template>
+        </Table>
       </Col>
       <Col span="1" class-name="center">
         <Icon class="center-button" type="md-arrow-dropleft" size="30" />
       </Col>
-      <Col span="18" class-name="right">col-113132</Col>
+      <Col span="14" class-name="right">col-113132</Col>
     </Row>
 
     <!-- 添加字典 -->
@@ -60,52 +69,23 @@ export default {
       dictModalTitle: "",
       dictModalVisible: false,
       dictForm: {
-        title: "",
-        type: "",
+        name: "",
+        code: "",
         description: "",
         sortOrder: 0
       },
       dictFormValidate: {
         // 表单验证规则
-        title: [{ required: true, message: "不能为空", trigger: "blur" }],
-        type: [{ required: true, message: "不能为空", trigger: "blur" }]
+        name: [{ required: true, message: "不能为空", trigger: "blur" }],
+        code: [{ required: true, message: "不能为空", trigger: "blur" }]
       },
       dictlist: [
-        { title: "Name", key: "name", sortable: true },
-        { title: "Email", key: "email", editable: true },
-        { title: "Create-Time", key: "createTime" },
-        {
-          title: "Handle",
-          key: "handle",
-          options: ["delete"],
-          button: [
-            (h, params, vm) => {
-              return h(
-                "Poptip",
-                {
-                  props: {
-                    confirm: true,
-                    title: "你确定要删除吗?"
-                  },
-                  on: {
-                    "on-ok": () => {
-                      vm.$emit("on-delete", params);
-                      vm.$emit(
-                        "input",
-                        params.dictlistData.filter(
-                          (item, index) => index !== params.row.initRowIndex
-                        )
-                      );
-                    }
-                  }
-                },
-                [h("Button", "自定义删除")]
-              );
-            }
-          ]
-        }
+        { title: "名称", key: "name", sortable: true },
+        { title: "编码", key: "code" },
+        { title: "描述", key: "description" },
+        { title: "操作", width: 150, slot: "action" }
       ],
-      dictlistData: [{ title: 1 }]
+      dictlistData: []
     };
   },
   watch: {},
@@ -129,7 +109,7 @@ export default {
               this.submitLoading = false;
               if (res.data.data) {
                 this.$Message.success("操作成功");
-                // this.getAllDict();
+                this.refreshDictListDate();
                 this.dictModalVisible = false;
               }
             });
@@ -141,7 +121,7 @@ export default {
               this.submitLoading = false;
               if (res.success) {
                 this.$Message.success("操作成功");
-                this.getAllDict();
+                this.refreshDictListDate();
                 this.dictModalVisible = false;
               }
             });
@@ -151,13 +131,15 @@ export default {
     },
     handleDelete(params) {
       console.log(params);
+    },
+    refreshDictListDate() {
+      getDictAll().then(request => {
+        this.dictlistData = request.data.data;
+      });
     }
   },
   created() {
-    getDictAll().then(request => {
-      //console.log(response.data.status)
-      console.log(request.data.data);
-    });
+    this.refreshDictListDate();
   },
   mounted() {}
 };
