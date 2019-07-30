@@ -2,15 +2,8 @@
   <div>
     <Row>
       <Col span="5" class-name="left">
-        <Col>
-          <Button @click="showAddDitc" type="primary" icon="md-add">添加字典</Button>
-        </Col>
-        <Col>
-          <Row>
-            <input placeholder="输入搜索字典" />
-          </Row>
-          <Row>查询</Row>
-        </Col>
+        <Button @click="showAddDitc" type="primary" icon="md-add">添加字典</Button>
+        <tables class="dictlist" ref="tables" v-model="dictlistData" :dictlist="dictlist" />
       </Col>
       <Col span="1" class-name="center">
         <Icon class="center-button" type="md-arrow-dropleft" size="30" />
@@ -27,12 +20,12 @@
       :styles="{top: '300px'}"
     >
       <Form ref="dictForm" :model="dictForm" :label-width="75" :rules="dictFormValidate">
-        <FormItem label="字典名称" prop="title">
-          <Input v-model="dictForm.title" />
+        <FormItem label="字典名称" prop="name">
+          <Input v-model="dictForm.name" />
         </FormItem>
-        <FormItem label="字典类型" prop="type">
+        <FormItem label="字典code" prop="code">
           <Tooltip placement="right" :max-width="220" transfer content="建议英文名且需唯一 非开发人员谨慎修改">
-            <Input v-model="dictForm.type" />
+            <Input v-model="dictForm.code" />
           </Tooltip>
         </FormItem>
         <FormItem label="备注" prop="description">
@@ -52,10 +45,13 @@
 </template>
 
 <script>
-import { getDictAll,addDict } from "@/api/dict";
+import { getDictAll, addDict } from "@/api/dict";
+import Tables from "_c/tables";
 
 export default {
-  components: {},
+  components: {
+    Tables
+  },
   props: {},
   data() {
     return {
@@ -73,7 +69,43 @@ export default {
         // 表单验证规则
         title: [{ required: true, message: "不能为空", trigger: "blur" }],
         type: [{ required: true, message: "不能为空", trigger: "blur" }]
-      }
+      },
+      dictlist: [
+        { title: "Name", key: "name", sortable: true },
+        { title: "Email", key: "email", editable: true },
+        { title: "Create-Time", key: "createTime" },
+        {
+          title: "Handle",
+          key: "handle",
+          options: ["delete"],
+          button: [
+            (h, params, vm) => {
+              return h(
+                "Poptip",
+                {
+                  props: {
+                    confirm: true,
+                    title: "你确定要删除吗?"
+                  },
+                  on: {
+                    "on-ok": () => {
+                      vm.$emit("on-delete", params);
+                      vm.$emit(
+                        "input",
+                        params.dictlistData.filter(
+                          (item, index) => index !== params.row.initRowIndex
+                        )
+                      );
+                    }
+                  }
+                },
+                [h("Button", "自定义删除")]
+              );
+            }
+          ]
+        }
+      ],
+      dictlistData: [{ title: 1 }]
     };
   },
   watch: {},
@@ -88,24 +120,22 @@ export default {
     handelSubmitDict() {
       this.$refs.dictForm.validate(valid => {
         if (valid) {
-          console.log("添加字典")
           this.submitLoading = true;
+          //插入
           if (this.modalType == 0) {
             // 添加 避免编辑后传入id等数据 记得删除
             delete this.dictForm.id;
-            console.log("添加字典1")
-            console.log(this.dictForm)
-            console.log(this.dictForm.sortOrder)
             addDict(this.dictForm).then(res => {
               this.submitLoading = false;
-              console.log("添加字典2")
-              if (res.success) {
+              if (res.data.data) {
                 this.$Message.success("操作成功");
-                this.getAllDict();
+                // this.getAllDict();
                 this.dictModalVisible = false;
               }
             });
-          } else if (this.modalType == 1) {
+          }
+          //更新
+          else if (this.modalType == 1) {
             // 编辑
             editDict(this.dictForm).then(res => {
               this.submitLoading = false;
@@ -118,6 +148,9 @@ export default {
           }
         }
       });
+    },
+    handleDelete(params) {
+      console.log(params);
     }
   },
   created() {

@@ -1,5 +1,9 @@
 import axios from 'axios'
 import store from '@/store'
+
+// 统一请求路径前缀
+let base="http://localhost:8085/JLazy/"
+
 // import { Spin } from 'iview'
 const addErrorLog = errorInfo => {
   const { statusText, status, request: { responseURL } } = errorInfo
@@ -70,5 +74,37 @@ class HttpRequest {
     this.interceptors(instance, options.url)
     return instance(options)
   }
+
+  getRequest = (url, params) => {
+    //let accessToken = getStore('accessToken');
+    return axios({
+        method: 'get',
+        url: `${base}${url}`,
+        params: params,
+        headers: {
+            'access_token': ''
+        }
+    });
+  };
+
+  postRequest = (url, params) => {
+    //let accessToken = getStore("accessToken");
+    return axios({
+        method: 'post',
+        url: `${base}${url}`,
+        data: params,
+        transformRequest: [function (data) {
+            let ret = '';
+            for (let it in data) {
+                ret += encodeURIComponent(it) + '=' + encodeURIComponent(data[it]) + '&';
+            }
+            return ret;
+        }],
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'access_token': ''
+        }
+    });
+  };
 }
 export default HttpRequest
