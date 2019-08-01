@@ -11,25 +11,112 @@
           style="width:300px; float:left;"
         />
         <Button @click="showAddDict" type="primary" icon="md-add" style="margin-left:10px;">添加字典</Button>
-        <Table :columns="dictlist" :data="dictlistData" style="margin-top: 10px;" height="700">
+        <Table
+          :columns="dictlist"
+          :data="dictlistData"
+          style="margin-top: 10px;"
+          height="700"
+          @on-row-click="changeCurSelectDict"
+        >
           <template slot-scope="{ row }" slot="name">
             <strong>{{ row.name }}</strong>
           </template>
           <template slot-scope="{ row, index }" slot="action">
             <Button
-              type="primary"
+              type="text"
               size="small"
-              style="margin-right: 5px"
-              @click="showEditDcit(index)"
+              style="margin-right: 5px; color:#5cadff;"
+              @click="showEditDict(index)"
             >修改</Button>
-            <Button type="error" size="small" @click="delDict(index)">删除</Button>
+            <Button type="text" size="small" @click="delDict(index)" style="color:#5cadff;">删除</Button>
           </template>
         </Table>
       </Col>
+
       <Col span="1" class-name="center">
         <Icon class="center-button" type="md-arrow-dropleft" size="30" />
       </Col>
-      <Col span="14" class-name="right">col-113132</Col>
+
+      <!-- 字典数据 -->
+      <Col span="14" class-name="right">
+        <Form
+          ref="searchForm"
+          :model="searchForm"
+          inline
+          :label-width="60"
+          class="search-form"
+          onsubmit="return false;"
+          style=" margin-top: 10px; height: 45px;"
+        >
+          <Form-item label="数据名称" prop="name">
+            <Input
+              type="text"
+              v-model="searchForm.name"
+              placeholder="请输入"
+              clearable
+              style="width: 200px"
+              @on-enter="refreshDictDataListDate"
+            />
+          </Form-item>
+          <Form-item label="状态" prop="isAvailable">
+            <Select
+              v-model="searchForm.isAvailable"
+              placeholder="请选择"
+              clearable
+              style="width: 200px"
+              @on-change="refreshDictDataListDate"
+            >
+              <Option value="1">正常</Option>
+              <Option value="0">禁用</Option>
+            </Select>
+          </Form-item>
+          <Form-item style="margin-left:-35px;" class="br">
+            <Button @click="refreshDictDataListDate" type="primary" icon="ios-search">搜索</Button>
+            <Button @click="dictDataSearchReset" type="primary" style="margin-left:10px">重置</Button>
+          </Form-item>
+        </Form>
+
+        <Row class="dictDataOperation">
+          <Button @click="addDictData" type="primary" icon="md-add">添加数据</Button>
+          <Button @click type="error" icon="md-trash" style="margin-left:10px">批量删除</Button>
+          <Button @click type="primary" icon="md-refresh" style="margin-left:10px">刷新数据</Button>
+        </Row>
+
+        <Row>
+          <Table
+            :columns="dictDataList"
+            :data="dictDataListData"
+            style="margin-top: 10px;"
+            height="650"
+          >
+            <template slot-scope="{ row }" slot="name">
+              <strong>{{ row.name }}</strong>
+            </template>
+            <template slot-scope="{ row, index }" slot="action">
+              <Button
+                type="text"
+                size="small"
+                style="margin-right: 5px;color:#5cadff;"
+                @click="showEditDict(index)"
+              >修改</Button>
+              <Button type="text" size="small" style="color:#5cadff;" @click="alert('删除')">删除</Button>
+            </template>
+          </Table>
+        </Row>
+        <Row>
+          <Page
+            :total="searchForm.total"
+            show-total
+            :page-size="searchForm.pageSize"
+            :current="searchForm.page"
+            show-elevator
+            show-sizer
+            style="margin-top:5px;padding-left:300px;"
+            @on-change="dictDataPageIndexChange"
+            @on-page-size-change="dictDataPageSizeChange"
+          />
+        </Row>
+      </Col>
     </Row>
 
     <!-- 添加或更新字典 -->
@@ -76,9 +163,11 @@ import {
   getDictAll,
   saveOrUpdateDict,
   queryByVagueName,
-  deleteById
+  deleteById,
+  getPageByCondition
 } from "@/api/dict";
 import Tables from "_c/tables";
+import moment from "moment";
 
 export default {
   components: {
@@ -111,9 +200,64 @@ export default {
         { title: "名称", key: "name", sortable: true },
         { title: "编码", key: "code" },
         { title: "描述", key: "description" },
+        { title: "操作", width: 150, slot: "action", width: "130" }
+      ],
+      dictlistData: [],
+      dictDataList: [
+        { title: "序号", key: "index", width: "70", type: "index" },
+        { title: "数据名称", key: "name" },
+        { title: "数据编码", key: "code" },
+        { title: "描述", key: "description" },
+        { title: "排序值", key: "sortOrder", sortable: true, width: "90" },
+        {
+          title: "状态",
+          key: "isAvailable",
+          render: (h, params) => {
+            if (params.row.isAvailable == 1) {
+              return h("div", [
+                h("Badge", {
+                  props: {
+                    status: "success",
+                    text: "正常启用"
+                  }
+                })
+              ]);
+            } else if (params.row.isAvailable == 0) {
+              return h("div", [
+                h("Badge", {
+                  props: {
+                    status: "error",
+                    text: "禁用"
+                  }
+                })
+              ]);
+            }
+          }
+        },
+        {
+          title: "创建时间",
+          key: "createTime",
+          render: (h, params) => {
+            return h(
+              "span",
+              moment(params.row.createTime).format("YYYY-MM-DD HH:mm:ss")
+            );
+          },
+          width: "150"
+        },
         { title: "操作", width: 150, slot: "action" }
       ],
-      dictlistData: []
+      dictDataListData: [],
+      // 字典数据查询参数
+      searchForm: {
+        name: "",
+        isAvailable: "",
+        page: 1,
+        pageSize: 10,
+        total: 0
+      },
+      // 当前选中的Dict
+      curSelectDict: 1
     };
   },
   watch: {},
@@ -125,7 +269,7 @@ export default {
       this.dictModalTitle = "添加字典";
       this.dictModalVisible = true;
     },
-    showEditDcit(index) {
+    showEditDict(index) {
       this.modalType = 1;
       this.$refs.dictForm.resetFields();
       this.dictModalTitle = "编辑字典";
@@ -173,6 +317,18 @@ export default {
         this.dictlistData = request.data.data;
       });
     },
+    refreshDictDataListDate() {
+      getPageByCondition(this.searchForm).then(request => {
+        this.dictDataListData = request.data.data.records;
+        this.searchForm.total = request.data.data.total;
+        this.searchForm.page = request.data.data.current;
+        this.searchForm.pageSize = request.data.data.size;
+      });
+    },
+    dictDataSearchReset() {
+      this.$refs.searchForm.resetFields();
+      refreshDictDataListDate();
+    },
     /**
      * 根据字典名称查询
      */
@@ -191,10 +347,37 @@ export default {
           this.refreshDictListDate();
         }
       });
+    },
+    // 页数改变
+    dictDataPageIndexChange(index) {
+      this.searchForm.page = index;
+      this.refreshDictDataListDate();
+    },
+    // 页面大小改变
+    dictDataPageSizeChange(size) {
+      this.searchForm.pageSize = size;
+      this.refreshDictDataListDate();
+    },
+    // 字典数据新增
+    dictdataAdd() {
+      his.modalType = 0;
+      this.$refs.dictForm.resetFields();
+      this.dictModalTitle = "添加字典 消息类型(message_type) 的数据";
+      this.dictModalVisible = true;
+    },
+    addDictData() {
+      alert("1231");
+    },
+    // 当前选中的dict
+    changeCurSelectDict(data,index){
+      this.curSelectDict=data;
+      this.dictlistData[index].className='demo-table-info-column';
+      console.log(this.dictlistData[index])
     }
   },
   created() {
     this.refreshDictListDate();
+    this.refreshDictDataListDate();
   },
   mounted() {}
 };

@@ -28,5 +28,12 @@ export const deleteById = (params) => {
   return axios.getRequest('dict/deleteById', params);
 }
 
+/**
+ * 根据字典分类数据分页查询
+ */
+export const getPageByCondition = (params) => {
+  return axios.getRequest('dictData/getPageByCondition', params);
+}
+
 
 
