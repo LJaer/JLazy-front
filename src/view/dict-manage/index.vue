@@ -258,7 +258,9 @@ export default {
         total: 0
       },
       // 当前选中的Dict
-      curSelectDict: 1
+      curSelectDict:{
+        index: -1
+      } 
     };
   },
   watch: {},
@@ -371,10 +373,22 @@ export default {
     },
     // 当前选中的dict
     changeCurSelectDict(data,index){
+      data.index=this.curSelectDict.index;
       this.curSelectDict=data;
-      this.curSelectDict.index=index;
+      if(index === this.curSelectDict.index){
+        this.curSelectDict.index=-1;
+        this.searchForm.dictId=null;
+      }else{
+        this.curSelectDict.index=index;
+        this.searchForm.dictId=data.id;
+      }
+      
+      this.refreshDictDataListDate();
     },
     dictRowClassName(row,index){
+      if(this.curSelectDict.index===-1){
+        return '';
+      }
       if (index === this.curSelectDict.index) {
                     return 'dict-row-table-select-row';
                 }
