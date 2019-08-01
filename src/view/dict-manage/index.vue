@@ -17,6 +17,7 @@
           style="margin-top: 10px;"
           height="700"
           @on-row-click="changeCurSelectDict"
+          :row-class-name="dictRowClassName"
         >
           <template slot-scope="{ row }" slot="name">
             <strong>{{ row.name }}</strong>
@@ -54,7 +55,7 @@
               v-model="searchForm.name"
               placeholder="请输入"
               clearable
-              style="width: 200px"
+              style="width: 100px"
               @on-enter="refreshDictDataListDate"
             />
           </Form-item>
@@ -371,9 +372,14 @@ export default {
     // 当前选中的dict
     changeCurSelectDict(data,index){
       this.curSelectDict=data;
-      this.dictlistData[index].className='demo-table-info-column';
-      console.log(this.dictlistData[index])
-    }
+      this.curSelectDict.index=index;
+    },
+    dictRowClassName(row,index){
+      if (index === this.curSelectDict.index) {
+                    return 'dict-row-table-select-row';
+                }
+                return '';
+    }	
   },
   created() {
     this.refreshDictListDate();
