@@ -36,4 +36,25 @@ export const getPageByCondition = (params) => {
 }
 
 
+/**
+ * 字典数据新增或更新
+ */
+export const saveOrUpdateDictData = (params) => {
+  return axios.postRequest('dictData/saveOrUpdate', params);
+}
+
+/**
+ * 字典数据根据id删除
+ */
+export const deleteByIdDictData = (params) => {
+  return axios.getRequest('dictData/deleteById', params);
+}
+
+/**
+ * 字典数据根据ids删除
+ */
+export const deleteByIdsDictData = (params) => {
+  return axios.getRequest('dictData/deleteByIds', params);
+}
+
 

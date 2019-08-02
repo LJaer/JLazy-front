@@ -1,45 +1,64 @@
 <template>
   <div>
     <Row>
-      <Col span="9" class-name="left">
-        <Input
-          search
-          enter-button
-          placeholder="请输入字典名称"
-          v-model="queryVagueName"
-          @on-search="queryByVagueName"
-          style="width:300px; float:left;"
-        />
-        <Button @click="showAddDict" type="primary" icon="md-add" style="margin-left:10px;">添加字典</Button>
-        <Table
-          :columns="dictlist"
-          :data="dictlistData"
-          style="margin-top: 10px;"
-          height="700"
-          @on-row-click="changeCurSelectDict"
-          :row-class-name="dictRowClassName"
-        >
-          <template slot-scope="{ row }" slot="name">
-            <strong>{{ row.name }}</strong>
-          </template>
-          <template slot-scope="{ row, index }" slot="action">
-            <Button
-              type="text"
-              size="small"
-              style="margin-right: 5px; color:#5cadff;"
-              @click="showEditDict(index)"
-            >修改</Button>
-            <Button type="text" size="small" @click="delDict(index)" style="color:#5cadff;">删除</Button>
-          </template>
-        </Table>
-      </Col>
+      <div v-if="showLeftDict">
+        <Col :span="this.dictSpan.left" class-name="left">
+          <Input
+            search
+            enter-button
+            placeholder="请输入字典名称"
+            v-model="queryVagueName"
+            @on-search="queryByVagueName"
+            style="width:300px; float:left;"
+          />
+          <Button @click="showAddDict" type="primary" icon="md-add" style="margin-left:10px;">添加字典</Button>
+          <Table
+            :columns="dictlist"
+            :data="dictlistData"
+            style="margin-top: 10px;"
+            height="700"
+            @on-row-click="changeCurSelectDict"
+            :row-class-name="dictRowClassName"
+          >
+            <template slot-scope="{ row }" slot="name">
+              <strong>{{ row.name }}</strong>
+            </template>
+            <template slot-scope="{ row, index }" slot="action">
+              <Button
+                type="text"
+                size="small"
+                style="margin-right: 5px; color:#5cadff;"
+                @click="showEditDict(index)"
+              >修改</Button>
+              <Button type="text" size="small" @click="delDict(index)" style="color:#5cadff;">删除</Button>
+            </template>
+          </Table>
+        </Col>
+      </div>
 
       <Col span="1" class-name="center">
-        <Icon class="center-button" type="md-arrow-dropleft" size="30" />
+        <div v-if="this.showLeftDict">
+          <Icon
+            class="center-button"
+            type="md-arrow-dropleft"
+            size="30"
+            @click="hideLeftDict"
+            style="color:#5cadff"
+          />
+        </div>
+        <div v-else>
+          <Icon
+            class="center-button"
+            type="md-arrow-dropright"
+            size="30"
+            @click="hideLeftDict"
+            style="color:#5cadff"
+          />
+        </div>
       </Col>
 
       <!-- 字典数据 -->
-      <Col span="14" class-name="right">
+      <Col :span="this.dictSpan.right" class-name="right">
         <Form
           ref="searchForm"
           :model="searchForm"
@@ -55,8 +74,8 @@
               v-model="searchForm.name"
               placeholder="请输入"
               clearable
-              style="width: 100px"
-              @on-enter="refreshDictDataListDate"
+              style="width: 150px"
+              @on-enter="refreshDictDataListData"
             />
           </Form-item>
           <Form-item label="状态" prop="isAvailable">
@@ -64,23 +83,33 @@
               v-model="searchForm.isAvailable"
               placeholder="请选择"
               clearable
-              style="width: 200px"
-              @on-change="refreshDictDataListDate"
+              style="width: 100px"
+              @on-change="refreshDictDataListData"
             >
               <Option value="1">正常</Option>
               <Option value="0">禁用</Option>
             </Select>
           </Form-item>
           <Form-item style="margin-left:-35px;" class="br">
-            <Button @click="refreshDictDataListDate" type="primary" icon="ios-search">搜索</Button>
+            <Button @click="refreshDictDataListData" type="primary" icon="ios-search">搜索</Button>
             <Button @click="dictDataSearchReset" type="primary" style="margin-left:10px">重置</Button>
           </Form-item>
         </Form>
 
         <Row class="dictDataOperation">
           <Button @click="addDictData" type="primary" icon="md-add">添加数据</Button>
-          <Button @click type="error" icon="md-trash" style="margin-left:10px">批量删除</Button>
-          <Button @click type="primary" icon="md-refresh" style="margin-left:10px">刷新数据</Button>
+          <Button
+            @click="batchDeleteDictData"
+            type="error"
+            icon="md-trash"
+            style="margin-left:10px"
+          >批量删除</Button>
+          <Button
+            @click="refreshDictDataListData"
+            type="primary"
+            icon="md-refresh"
+            style="margin-left:10px"
+          >刷新数据</Button>
         </Row>
 
         <Row>
@@ -89,6 +118,7 @@
             :data="dictDataListData"
             style="margin-top: 10px;"
             height="650"
+            @on-selection-change="updateCurDictDataSelectMulti"
           >
             <template slot-scope="{ row }" slot="name">
               <strong>{{ row.name }}</strong>
@@ -98,9 +128,9 @@
                 type="text"
                 size="small"
                 style="margin-right: 5px;color:#5cadff;"
-                @click="showEditDict(index)"
+                @click="updateDictData(index)"
               >修改</Button>
-              <Button type="text" size="small" style="color:#5cadff;" @click="alert('删除')">删除</Button>
+              <Button type="text" size="small" style="color:#5cadff;" @click="delDictData(index)">删除</Button>
             </template>
           </Table>
         </Row>
@@ -121,14 +151,14 @@
     </Row>
 
     <!-- 添加或更新字典 -->
-    <Modal
-      :title="dictModalTitle"
-      v-model="dictModalVisible"
-      :mask-closable="false"
-      :width="500"
-      :styles="{top: '300px'}"
-    >
-      <Form ref="dictForm" :model="dictForm" :label-width="75" :rules="dictFormValidate">
+    <Modal :title="dictModalTitle" v-model="dictModalVisible" :width="500" :styles="{top: '250px'}">
+      <Form
+        ref="dictForm"
+        :model="dictForm"
+        :label-width="75"
+        :rules="dictFormValidate"
+        label-position="left"
+      >
         <FormItem label="字典名称" prop="name">
           <Input v-model="dictForm.name" />
         </FormItem>
@@ -156,6 +186,53 @@
         <Button type="primary" :loading="submitLoading" @click="handelSubmitDict">提交</Button>
       </div>
     </Modal>
+
+    <!-- 添加或更新字典数据 -->
+    <Modal
+      :title="dictDataModalTitle"
+      v-model="dictDataModalVisible"
+      :width="500"
+      :styles="{top: '250px'}"
+    >
+      <Form
+        ref="dictDataForm"
+        :model="dictDataForm"
+        :label-width="75"
+        :rules="dictDataFormValidate"
+        label-position="left"
+      >
+        <FormItem label="数据名称" prop="name">
+          <Input v-model="dictDataForm.name" />
+        </FormItem>
+        <FormItem label="数据code" prop="code">
+          <Tooltip placement="right" :max-width="220" transfer content="建议英文名且需唯一 非开发人员谨慎修改">
+            <Input v-model="dictDataForm.code" />
+          </Tooltip>
+        </FormItem>
+        <FormItem label="备注" prop="description">
+          <Input v-model="dictDataForm.description" />
+        </FormItem>
+        <FormItem label="排序值" prop="sortOrder">
+          <InputNumber :max="1000" :min="0" v-model="dictDataForm.sortOrder"></InputNumber>
+          <span style="margin-left:5px">值越小越靠前，支持小数</span>
+        </FormItem>
+        <FormItem label="是否启用" prop="isAvailable">
+          <i-switch
+            size="large"
+            v-model="dictDataForm.isAvailable"
+            :true-value="1"
+            :false-value="0"
+          >
+            <span slot="open">启用</span>
+            <span slot="close">禁用</span>
+          </i-switch>
+        </FormItem>
+      </Form>
+      <div slot="footer">
+        <Button type="text" @click="dictDataModalVisible=false">取消</Button>
+        <Button type="primary" :loading="dictDataSumitLoading" @click="handelSubmitDictData">提交</Button>
+      </div>
+    </Modal>
   </div>
 </template>
 
@@ -165,10 +242,14 @@ import {
   saveOrUpdateDict,
   queryByVagueName,
   deleteById,
-  getPageByCondition
+  getPageByCondition,
+  saveOrUpdateDictData,
+  deleteByIdDictData,
+  deleteByIdsDictData
 } from "@/api/dict";
 import Tables from "_c/tables";
 import moment from "moment";
+import _ from "lodash";
 
 export default {
   components: {
@@ -178,9 +259,13 @@ export default {
   data() {
     return {
       submitLoading: false, // 添加或编辑提交状态
+      dictDataSumitLoading: false, //新增或更新字典数据提交
       modalType: 0, // 添加或编辑标识
+      dictDataModalType: 0, //
       dictModalTitle: "",
+      dictDataModalTitle: "",
       dictModalVisible: false,
+      dictDataModalVisible: false,
       queryVagueName: "", //字典表模糊查询条件
       dictEditTitle: "", // 编辑标题
       dictEditVisible: false, // 添加或编辑显示
@@ -197,6 +282,11 @@ export default {
         name: [{ required: true, message: "不能为空", trigger: "blur" }],
         code: [{ required: true, message: "不能为空", trigger: "blur" }]
       },
+      dictDataFormValidate: {
+        // 表单验证规则
+        name: [{ required: true, message: "不能为空", trigger: "blur" }],
+        code: [{ required: true, message: "不能为空", trigger: "blur" }]
+      },
       dictlist: [
         { title: "名称", key: "name", sortable: true },
         { title: "编码", key: "code" },
@@ -205,6 +295,7 @@ export default {
       ],
       dictlistData: [],
       dictDataList: [
+        { type: "selection", width: 60, align: "center" },
         { title: "序号", key: "index", width: "70", type: "index" },
         { title: "数据名称", key: "name" },
         { title: "数据编码", key: "code" },
@@ -219,7 +310,7 @@ export default {
                 h("Badge", {
                   props: {
                     status: "success",
-                    text: "正常启用"
+                    text: "启用"
                   }
                 })
               ]);
@@ -258,9 +349,25 @@ export default {
         total: 0
       },
       // 当前选中的Dict
-      curSelectDict:{
+      curSelectDict: {
         index: -1
-      } 
+      },
+      // 添加或编辑字典表数据
+      dictDataForm: {
+        name: "",
+        code: "",
+        isAvailable: 1,
+        description: "",
+        sortOrder: 0
+      },
+      //数据字典多选
+      dictDataSelectMulti: [],
+      //leftDict是否展示
+      showLeftDict: true,
+      dictSpan: {
+        right: 14,
+        left: 9
+      }
     };
   },
   watch: {},
@@ -287,8 +394,13 @@ export default {
           if (this.modalType == 0) {
             // 添加 避免编辑后传入id等数据 记得删除
             delete this.dictForm.id;
-            saveOrUpdateDict(this.dictForm).then(res => {
+            saveOrUpdateDictData(this.dictForm).then(res => {
               this.submitLoading = false;
+              if (res.data.status === "300") {
+                this.$Message.error("操作失败");
+                this.submitLoading = false;
+                return;
+              }
               if (res.data.data) {
                 this.$Message.success("操作成功");
                 this.refreshDictListDate();
@@ -312,15 +424,12 @@ export default {
         }
       });
     },
-    handleDelete(params) {
-      console.log(params);
-    },
     refreshDictListDate() {
       getDictAll().then(request => {
         this.dictlistData = request.data.data;
       });
     },
-    refreshDictDataListDate() {
+    refreshDictDataListData() {
       getPageByCondition(this.searchForm).then(request => {
         this.dictDataListData = request.data.data.records;
         this.searchForm.total = request.data.data.total;
@@ -330,7 +439,9 @@ export default {
     },
     dictDataSearchReset() {
       this.$refs.searchForm.resetFields();
-      refreshDictDataListDate();
+      this.curSelectDict.index = -1;
+      this.searchForm.dictId = null;
+      this.refreshDictDataListData();
     },
     /**
      * 根据字典名称查询
@@ -351,53 +462,139 @@ export default {
         }
       });
     },
+    /**
+     * 根据id删除字典数据
+     */
+    delDictData(index) {
+      deleteByIdDictData({ id: this.dictDataListData[index].id }).then(res => {
+        if (res.data.data) {
+          this.$Message.success("操作成功");
+          this.refreshDictDataListData();
+        }
+      });
+    },
     // 页数改变
     dictDataPageIndexChange(index) {
       this.searchForm.page = index;
-      this.refreshDictDataListDate();
+      this.refreshDictDataListData();
     },
     // 页面大小改变
     dictDataPageSizeChange(size) {
       this.searchForm.pageSize = size;
-      this.refreshDictDataListDate();
+      this.refreshDictDataListData();
     },
     // 字典数据新增
-    dictdataAdd() {
-      his.modalType = 0;
-      this.$refs.dictForm.resetFields();
-      this.dictModalTitle = "添加字典 消息类型(message_type) 的数据";
-      this.dictModalVisible = true;
-    },
     addDictData() {
-      alert("1231");
+      //判断字典类型是否选中
+      if (undefined === this.curSelectDict.name) {
+        this.$Message.error("请点击选择左侧字典类型");
+        return;
+      }
+      this.dictDataModalType = 0;
+      this.dictDataModalTitle =
+        "添加字典 [" + this.curSelectDict.name + "] 的数据";
+      this.$refs.dictDataForm.resetFields();
+      this.dictDataModalVisible = true;
+    },
+    //字典数据更新
+    updateDictData(index) {
+      this.dictDataModalType = 1;
+      this.dictDataModalTitle = "编辑字典数据";
+      this.$refs.dictDataForm.resetFields();
+      this.dictDataModalVisible = true;
+      this.dictDataForm = this.dictDataListData[index];
     },
     // 当前选中的dict
-    changeCurSelectDict(data,index){
-      data.index=this.curSelectDict.index;
-      this.curSelectDict=data;
-      if(index === this.curSelectDict.index){
-        this.curSelectDict.index=-1;
-        this.searchForm.dictId=null;
-      }else{
-        this.curSelectDict.index=index;
-        this.searchForm.dictId=data.id;
+    changeCurSelectDict(data, index) {
+      data.index = this.curSelectDict.index;
+      this.curSelectDict = data;
+      this.searchForm.page = 1;
+      if (index === this.curSelectDict.index) {
+        this.curSelectDict.index = -1;
+        this.searchForm.dictId = null;
+      } else {
+        this.curSelectDict.index = index;
+        this.searchForm.dictId = data.id;
       }
-      
-      this.refreshDictDataListDate();
+
+      this.refreshDictDataListData();
     },
-    dictRowClassName(row,index){
-      if(this.curSelectDict.index===-1){
-        return '';
+    dictRowClassName(row, index) {
+      if (this.curSelectDict.index === -1) {
+        return "";
       }
       if (index === this.curSelectDict.index) {
-                    return 'dict-row-table-select-row';
-                }
-                return '';
-    }	
+        return "dict-row-table-select-row";
+      }
+      return "";
+    },
+    handelSubmitDictData() {
+      this.$refs.dictDataForm.validate(valid => {
+        if (valid) {
+          this.dictDataSumitLoading = true;
+          //插入
+          if (this.dictDataModalType == 0) {
+            // 添加 避免编辑后传入id等数据 记得删除
+            delete this.dictDataForm.id;
+            this.dictDataForm.dictId = this.curSelectDict.id;
+            saveOrUpdateDictData(this.dictDataForm).then(res => {
+              this.dictDataSumitLoading = false;
+              if (res.data.status === 300) {
+                this.$Message.error("操作失败");
+                return;
+              }
+              if (res.data.data) {
+                this.$Message.success("操作成功");
+                this.refreshDictDataListData();
+                this.dictDataModalVisible = false;
+              }
+            });
+          }
+          //更新
+          else if (this.dictDataModalType == 1) {
+            // 编辑
+            saveOrUpdateDictData(this.dictDataForm).then(res => {
+              this.dictDataSumitLoading = false;
+              if (res.data.data) {
+                this.$Message.success("操作成功");
+                this.dictDataModalVisible = false;
+                this.refreshDictDataListData();
+              }
+            });
+          }
+        }
+      });
+    },
+    //更新当前字典数据多选数据
+    updateCurDictDataSelectMulti(selection) {
+      this.dictDataSelectMulti = selection;
+    },
+    //批量删除字典数据
+    batchDeleteDictData() {
+      let selectMultiIds = _.map(this.dictDataSelectMulti, "id");
+      deleteByIdsDictData({ ids: selectMultiIds + "" }).then(res => {
+        if (res.data.data) {
+          this.$Message.success("操作成功");
+          this.refreshDictDataListData();
+        }
+      });
+    },
+    //隐藏字典展示
+    hideLeftDict() {
+      if (this.showLeftDict) {
+        this.showLeftDict = false;
+        this.dictSpan.left = 0;
+        this.dictSpan.right = 23;
+      } else {
+        this.showLeftDict = true;
+        this.dictSpan.left = 9;
+        this.dictSpan.right = 14;
+      }
+    }
   },
   created() {
     this.refreshDictListDate();
-    this.refreshDictDataListDate();
+    this.refreshDictDataListData();
   },
   mounted() {}
 };
