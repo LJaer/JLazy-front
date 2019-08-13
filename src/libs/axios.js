@@ -76,19 +76,20 @@ class HttpRequest {
   }
 
   getRequest = (url, params) => {
-    //let accessToken = getStore('accessToken');
+    let access_token = sessionStorage.getItem("access_token");
+    alert(access_token)
     return axios({
         method: 'get',
         url: `${base}${url}`,
         params: params,
         headers: {
-            'access_token': ''
+            'access_token': access_token
         }
     });
   };
 
   postRequest = (url, params) => {
-    //let accessToken = getStore("accessToken");
+    let access_token = sessionStorage.getItem("access_token");
     return axios({
         method: 'post',
         url: `${base}${url}`,
@@ -102,7 +103,7 @@ class HttpRequest {
         }],
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'access_token': ''
+            'access_token': access_token
         }
     });
   };

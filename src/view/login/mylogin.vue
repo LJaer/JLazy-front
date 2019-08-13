@@ -64,7 +64,7 @@ export default {
                          this.$Message.success("登陆成功");
                          //保存access_token
                          sessionStorage.setItem("access_token",res.data.data.access_token)
-                        this.$router.push('/main')
+                        this.$router.push('/home')
                     }
                 })
             }

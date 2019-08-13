@@ -28,15 +28,6 @@ export default [
     component: () => import('@/view/login/mylogin.vue')
   },
   {
-    path: '/main',
-    name: 'main',
-    meta: {
-      title: 'JLazy home',
-      hideInMenu: true
-    },
-    component: () => import('@/view/main/main.vue')
-  },
-  {
     path: '/',
     name: '_home',
     redirect: '/home',
