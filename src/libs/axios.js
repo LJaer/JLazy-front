@@ -77,7 +77,6 @@ class HttpRequest {
 
   getRequest = (url, params) => {
     let access_token = sessionStorage.getItem("access_token");
-    alert(access_token)
     return axios({
         method: 'get',
         url: `${base}${url}`,
