@@ -18,6 +18,7 @@ import VOrgTree from 'v-org-tree'
 import 'v-org-tree/dist/v-org-tree.css'
 // 实际打包时应该不引入mock
 /* eslint-disable */
+//可以配置mock
 if (process.env.NODE_ENV !== 'production') require('@/mock')
 
 Vue.use(iView, {

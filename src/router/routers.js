@@ -25,7 +25,16 @@ export default [
       title: 'Login - 登录',
       hideInMenu: true
     },
-    component: () => import('@/view/login/login.vue')
+    component: () => import('@/view/login/mylogin.vue')
+  },
+  {
+    path: '/main',
+    name: 'main',
+    meta: {
+      title: 'JLazy home',
+      hideInMenu: true
+    },
+    component: () => import('@/view/main/main.vue')
   },
   {
     path: '/',
