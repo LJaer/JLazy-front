@@ -69,13 +69,13 @@ export default [
        component: () => import('@/view/dict-manage')
       },
       {
-        path: 'user_manager',
-        name: '用户管理',
+        path: 'role_manager',
+        name: '角色权限管理',
         meta: {
           icon: '_dictionary',
-          title: '用户管理'
+          title: '角色权限管理'
         },
-        component: () => import('@/view/dict-manage')
+        component: () => import('@/view/role-manage')
       },
     ]
   },

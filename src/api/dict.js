@@ -4,8 +4,12 @@ import axios from '@/libs/api.request'
  * 获取所有字典表数据
  */
 export const getDictAll = () => {
-  return axios.getRequest('dict/getAll', null);
+  return axios.request({
+    url: 'dict/getAll',
+    method: 'get'
+  })
 }
+
 
 /**
  * 新增或修改字典
@@ -18,7 +22,11 @@ export const saveOrUpdateDict = (params) => {
  * 根据名称模糊查询
  */
 export const queryByVagueName = (params) => {
-  return axios.getRequest('dict/queryByVagueName', params);
+  return axios.request({
+    url: 'dict/queryByVagueName',
+    params: params,
+    method: 'get'
+  })
 }
 
 /**
@@ -32,7 +40,11 @@ export const deleteById = (params) => {
  * 根据字典分类数据分页查询
  */
 export const getPageByCondition = (params) => {
-  return axios.getRequest('dictData/getPageByCondition', params);
+  return axios.request({
+    url: 'dictData/getPageByCondition',
+    params: params,
+    method: 'get'
+  })
 }
 
 

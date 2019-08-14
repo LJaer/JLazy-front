@@ -13,6 +13,7 @@
           />
           <Button @click="showAddDict" type="primary" icon="md-add" style="margin-left:10px;">添加字典</Button>
           <Table
+            border
             :columns="dictlist"
             :data="dictlistData"
             style="margin-top: 10px;"
@@ -114,6 +115,7 @@
 
         <Row>
           <Table
+            border
             :columns="dictDataList"
             :data="dictDataListData"
             style="margin-top: 10px;"
@@ -426,15 +428,20 @@ export default {
     },
     refreshDictListDate() {
       getDictAll().then(request => {
-        this.dictlistData = request.data.data;
+        if (request !== undefined) {
+          this.dictlistData = request.data.data;
+        }
       });
     },
     refreshDictDataListData() {
       getPageByCondition(this.searchForm).then(request => {
-        this.dictDataListData = request.data.data.records;
-        this.searchForm.total = request.data.data.total;
-        this.searchForm.page = request.data.data.current;
-        this.searchForm.pageSize = request.data.data.size;
+        if (request !== undefined) {
+          let data = request.data.data;
+          this.dictDataListData = data.records;
+          this.searchForm.total = data.total;
+          this.searchForm.page = data.current;
+          this.searchForm.pageSize = data.size;
+        }
       });
     },
     dictDataSearchReset() {
@@ -448,7 +455,9 @@ export default {
      */
     queryByVagueName() {
       queryByVagueName({ name: this.queryVagueName }).then(request => {
-        this.dictlistData = request.data.data;
+        if (request !== undefined) {
+          this.dictlistData = request.data.data;
+        }
       });
     },
     /**
