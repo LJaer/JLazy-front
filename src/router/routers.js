@@ -70,10 +70,10 @@ export default [
       },
       {
         path: 'role_manager',
-        name: '角色权限管理',
+        name: '角色管理',
         meta: {
           icon: '_dictionary',
-          title: '角色权限管理'
+          title: '角色管理'
         },
         component: () => import('@/view/role-manage')
       },
