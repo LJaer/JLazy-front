@@ -32,9 +32,9 @@
         :current="roleList.page"
         show-elevator
         show-sizer
-        style="margin-top:5px;"
+        style="margin-top:5px;padding-left:700px;"
         @on-change="roleIndexChange"
-        @on-page-size-change
+        @on-page-size-change="rolePageSizeChange"
       />
     </Row>
 
@@ -210,6 +210,11 @@ export default {
     //页数改变
     roleIndexChange(index){
         this.roleList.pageNum=index;
+        this.getRoleList();
+    },
+    //页大小变化
+    rolePageSizeChange(index){
+        this.roleList.pageSize=index;
         this.getRoleList();
     }
   },
