@@ -386,7 +386,8 @@ export default {
       this.$refs.dictForm.resetFields();
       this.dictModalTitle = "编辑字典";
       this.dictModalVisible = true;
-      this.dictForm = this.dictlistData[index];
+      //进行复制，而不是引用
+      Object.assign(this.dictForm,this.dictlistData[index]);
     },
     handelSubmitDict() {
       this.$refs.dictForm.validate(valid => {
@@ -482,8 +483,8 @@ export default {
         }
       });
     },
-    // 页数改变
     dictDataPageIndexChange(index) {
+    // 页数改变
       this.searchForm.page = index;
       this.refreshDictDataListData();
     },
@@ -511,7 +512,7 @@ export default {
       this.dictDataModalTitle = "编辑字典数据";
       this.$refs.dictDataForm.resetFields();
       this.dictDataModalVisible = true;
-      this.dictDataForm = this.dictDataListData[index];
+      Object.assign(this.dictDataForm,this.dictDataListData[index]);
     },
     // 当前选中的dict
     changeCurSelectDict(data, index) {

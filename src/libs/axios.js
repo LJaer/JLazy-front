@@ -73,7 +73,7 @@ class HttpRequest {
       let msg = res.data.msg;
 
       // token 过期重新登陆
-      if(1002 === code || 1003 === code){
+      if(1002 === code || 1003 === code || 1004 === code){
         sessionStorage.removeItem("access_token")
       }
 

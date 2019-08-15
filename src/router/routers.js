@@ -77,6 +77,15 @@ export default [
         },
         component: () => import('@/view/role-manage')
       },
+      {
+        path: 'user_manager',
+        name: '用户管理',
+        meta: {
+          icon: '_dictionary',
+          title: '用户管理'
+        },
+        component: () => import('@/view/user-manage')
+      },
     ]
   },
   {

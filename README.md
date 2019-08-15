@@ -25,3 +25,6 @@ sessionStorage（临时存储） ：为每一个数据源维持一个存储区�
 localStorage（长期存储） ：与 sessionStorage 一样，但是浏览器关闭后，数据依然会一直存在
 
 mock/index.js可以设置哪些接口走mock
+
+Object.assign和Object.create的基本用法 对象合并和创建
+ES6 Object.assign()的用法 https://blog.csdn.net/dwb123456123456/article/details/83316471

@@ -1,12 +1,19 @@
 <template>
   <div style="padding:5px;background-color:rgb(240, 240, 240);">
     <Row style="padding-top:5px;padding-left:5px;">
-      <Button type="primary" @click="addRoleModal = true">添加角色</Button>
+      <Button type="primary" @click="showRoleModal(1,null)">添加角色</Button>
       <Button style="margin-left:10px" @click="getRoleList">刷新</Button>
     </Row>
     <br />
     <Row>
-      <Table border highlight-row ref="rolePageTable" :columns="roleColumns" :data="rolePageData" height="520">
+      <Table
+        border
+        highlight-row
+        ref="rolePageTable"
+        :columns="roleColumns"
+        :data="rolePageData"
+        height="520"
+      >
         <template slot-scope="{ row, index }" slot="action">
           <Button
             type="text"
@@ -18,9 +25,9 @@
             type="text"
             size="small"
             style="margin-right: 5px; color:#5cadff;"
-            @click="showEditDict(index)"
+            @click="showRoleModal(2,index)"
           >编辑</Button>
-          <Button type="text" size="small" @click="delDict(index)" style="color:#5cadff;">删除</Button>
+          <Button type="text" size="small" @click="deleteRole(index)" style="color:#5cadff;">删除</Button>
         </template>
       </Table>
     </Row>
@@ -39,11 +46,11 @@
     </Row>
 
     <Modal
-      v-model="addRoleModal"
-      title="新增角色"
-      :loading="addRoleModalLoading"
+      v-model="addOrEditRoleModal"
+      :title="addOrEditRoleModalTile"
+      :loading="addOrEditRoleModalLoading"
       @on-cancel="clearRoleForm"
-      @on-ok="addRole"
+      @on-ok="addOrEditRole"
     >
       <Form
         ref="roleForm"
@@ -64,7 +71,12 @@
           <Input v-model="roleForm.description" />
         </FormItem>
         <FormItem label="状态" prop="isAvailable">
-          <i-switch size="large" v-model="roleForm.isAvailable" :true-value="1" :false-value="0">
+          <i-switch
+            size="large"
+            v-model="roleForm.isAvailable"
+            :true-value="true"
+            :false-value="false"
+          >
             <span slot="open">启用</span>
             <span slot="close">禁用</span>
           </i-switch>
@@ -75,7 +87,7 @@
 </template>
 
 <script>
-import { getRolePage, saveOrUpdate } from "@/api/role";
+import { getRolePage, saveOrUpdate, deleteById } from "@/api/role";
 import moment from "moment";
 import { truncate } from "fs";
 
@@ -154,14 +166,15 @@ export default {
       ],
       rolePageData: [],
       //添加角色相关
-      addRoleModal: false,
-      addRoleModalLoading: true,
+      addOrEditRoleModal: false,
+      addOrEditRoleModalLoading: true,
+      addOrEditRoleModalTile: "",
       // 添加或编辑角色数据
       roleForm: {
         id: null,
         name: "",
         code: "",
-        isAvailable: 1,
+        isAvailable: true,
         description: ""
       },
       roleFormValidate: {
@@ -182,22 +195,35 @@ export default {
   methods: {
     //获取分页角色
     getRoleList() {
-      getRolePage({ pageNum: this.roleList.pageNum, pageSize: this.roleList.pageSize }).then(
-        res => {
-            let data = res.data.data;
-            this.roleList.total=data.total
-            console.log(res)
-            this.rolePageData = res.data.data.records;
-        }
-      );
+      getRolePage({
+        pageNum: this.roleList.pageNum,
+        pageSize: this.roleList.pageSize
+      }).then(res => {
+        let data = res.data.data;
+        this.roleList.total = data.total;
+        this.rolePageData = res.data.data.records;
+      });
     },
-    //新增角色
-    addRole() {
+    //显示新增或编辑角色弹窗
+    showRoleModal(flag, index) {
+      this.addOrEditRoleModal = true;
+      if (1 === flag) {
+        this.addOrEditRoleModalTile = "新增角色";
+      } else if (2 === flag) {
+        this.addOrEditRoleModalTile = "编辑角色";
+        let data = this.rolePageData[index];
+        Object.assign(this.roleForm, this.rolePageData[index]);
+        this.roleForm.createTime = null;
+        this.roleForm.updateTime = null;
+      }
+    },
+    //新增或编辑角色
+    addOrEditRole() {
       saveOrUpdate(this.roleForm).then(res => {
         if (res.data.data) {
           this.$Message.success("操作成功");
-          this.addRoleModalLoading = false;
-          this.addRoleModal = false;
+          this.addOrEditRoleModalLoading = false;
+          this.addOrEditRoleModal = false;
           this.clearRoleForm();
           this.getRoleList();
         }
@@ -208,14 +234,23 @@ export default {
       this.$refs.roleForm.resetFields();
     },
     //页数改变
-    roleIndexChange(index){
-        this.roleList.pageNum=index;
-        this.getRoleList();
+    roleIndexChange(index) {
+      this.roleList.pageNum = index;
+      this.getRoleList();
     },
     //页大小变化
-    rolePageSizeChange(index){
-        this.roleList.pageSize=index;
-        this.getRoleList();
+    rolePageSizeChange(index) {
+      this.roleList.pageSize = index;
+      this.getRoleList();
+    },
+    //删除角色
+    deleteRole(index) {
+      deleteById({ id: this.rolePageData[index].id }).then(res => {
+        if (res.data.data) {
+          this.$Message.success("操作成功");
+          this.getRoleList();
+        }
+      });
     }
   },
   created() {

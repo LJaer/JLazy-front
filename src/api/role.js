@@ -21,3 +21,14 @@ export const saveOrUpdate = (params) => {
     method: 'post'
   })
 }
+
+/**
+ * 根据id删除
+ */
+export const deleteById = (params) => {
+  return axios.request({
+    url: 'role/deleteById',
+    params: params,
+    method: 'get'
+  })
+}
