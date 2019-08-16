@@ -146,8 +146,8 @@
         <FormItem label="用户名" prop="username">
           <Input v-model="userForm.username" style="width:150px" />
         </FormItem>
-        <FormItem label="手机号" prop="phone">
-          <Input v-model="userForm.phone" style="width:150px" />
+        <FormItem label="手机号" prop="mobile">
+          <Input v-model="userForm.mobile" style="width:150px" />
         </FormItem>
         <FormItem label="邮箱" prop="email">
           <Input v-model="userForm.email" style="width:150px" />
@@ -319,7 +319,7 @@ export default {
       userModalVisible: false,
       userForm: {
         username: "",
-        phone: "",
+        mobile: "",
         email: "",
         address: "",
         avatar: "",
@@ -387,6 +387,7 @@ export default {
         updateUser(this.userForm).then(res => {
           if(res.data.data){
             this.$Message.success("操作成功");
+            this.getUserPageData();
           }
         })
       }
