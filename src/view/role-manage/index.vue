@@ -211,7 +211,6 @@ export default {
         this.addOrEditRoleModalTile = "新增角色";
       } else if (2 === flag) {
         this.addOrEditRoleModalTile = "编辑角色";
-        let data = this.rolePageData[index];
         Object.assign(this.roleForm, this.rolePageData[index]);
         this.roleForm.createTime = null;
         this.roleForm.updateTime = null;

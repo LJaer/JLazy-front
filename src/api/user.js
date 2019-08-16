@@ -11,6 +11,40 @@ export const getByPageQueryDTO = (params) => {
   })
 }
 
+/**
+ * 新增用户
+ */
+export const createNewUser = (params) => {
+  return axios.request({
+    url: 'user/createNewUser',
+    params: params,
+    method: 'post'
+  })
+}
+
+/**
+ * 更新用户
+ */
+export const updateUser = (params) => {
+  return axios.request({
+    url: 'user/updateUser',
+    params: params,
+    method: 'post'
+  })
+}
+
+/**
+ * 根据id删除
+ */
+export const deleteById = (params) => {
+  return axios.request({
+    url: 'user/deleteById',
+    params: params,
+    method: 'get'
+  })
+}
+
+
 //export const login = ({ userName, password }) => {
 //  const data = {
 //    userName,
