@@ -120,7 +120,12 @@
             style="margin-right: 5px; color:#5cadff;"
             @click="addOrEditUser(2,index)"
           >编辑</Button>
-          <Button type="text" size="small" style="margin-right: 5px; color:#5cadff;" @click>重置密码</Button>
+          <Button
+            type="text"
+            size="small"
+            style="margin-right: 5px; color:#5cadff;"
+            @click="showUpdatePasswordModal(index)"
+          >重置密码</Button>
           <Button type="text" size="small" @click="deleteUser(index)" style="color:#5cadff;">删除</Button>
         </template>
       </Table>
@@ -215,6 +220,31 @@
         </FormItem>
       </Form>
     </Modal>
+
+    <!-- 修改密码 -->
+    <Modal
+      title="修改密码"
+      v-model="updatePasswordModalVisible"
+      :width="500"
+      :styles="{top: '250px'}"
+      @on-ok="toUpdatePassword"
+      @on-cancel="hideUpdatePasswordModeal"
+    >
+      <Form
+        ref="updatePasswordForm"
+        :model="updatePasswordForm"
+        :label-width="150"
+        :rules="updatePasswordFormValidate"
+        label-position="left"
+      >
+        <FormItem label="请输入新密码" prop="passwordOne">
+          <Input v-model="updatePasswordForm.passwordOne" style="width:150px" />
+        </FormItem>
+        <FormItem label="请再次输入新密码" prop="passwordTwo">
+          <Input v-model="updatePasswordForm.passwordTwo" style="width:150px" />
+        </FormItem>
+      </Form>
+    </Modal>
   </div>
 </template>
 
@@ -223,7 +253,8 @@ import {
   getByPageQueryDTO,
   createNewUser,
   deleteById,
-  updateUser
+  updateUser,
+  updatePassword
 } from "@/api/user";
 import { start } from "repl";
 export default {
@@ -336,6 +367,18 @@ export default {
         username: [{ required: true, message: "不能为空", trigger: "blur" }],
         phone: [{ required: true, message: "不能为空", trigger: "blur" }],
         email: [{ required: true, message: "不能为空", trigger: "blur" }]
+      },
+      //修改密码窗口
+      updatePasswordModalVisible: false,
+      updatePasswordForm: {
+        id: null,
+        passwordOne: "",
+        passwordTwo: ""
+      },
+      updatePasswordFormValidate: {
+        // 表单验证规则
+        passwordOne: [{ required: true, message: "不能为空", trigger: "blur" }],
+        passwordTwo: [{ required: true, message: "不能为空", trigger: "blur" }]
       }
     };
   },
@@ -382,14 +425,14 @@ export default {
           this.clearUserForm();
           alert("用户密码为：" + password);
         });
-      }else{
+      } else {
         //更新用户
         updateUser(this.userForm).then(res => {
-          if(res.data.data){
+          if (res.data.data) {
             this.$Message.success("操作成功");
             this.getUserPageData();
           }
-        })
+        });
       }
     },
     //新增用户取消
@@ -405,6 +448,28 @@ export default {
           this.getUserPageData();
         }
       });
+    },
+    //展示修改密码窗口
+    showUpdatePasswordModal(index) {
+      this.updatePasswordModalVisible = true;
+      this.updatePasswordForm.id = this.userPageData[index].id;
+    },
+    //隐藏修改密码窗口
+    hideUpdatePasswordModeal(){
+      this.updatePasswordModalVisible = false;
+      this.updatePasswordForm.id = null;
+    },
+    //修改密码
+    toUpdatePassword(){
+      updatePassword(this.updatePasswordForm).then(res => {
+          if(res.data.data){
+            this.$Message.success("操作成功");
+            this.hideUpdatePasswordModeal();
+            this.$refs.updatePasswordForm.resetFields();
+          }else{
+            this.$Message.success("操作失败");
+          }
+      })
     }
   },
   created() {

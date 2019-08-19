@@ -44,6 +44,23 @@ export const deleteById = (params) => {
   })
 }
 
+/**
+ * admin用户修改密码
+ */
+export const updatePassword = (params) => {
+  return axios.request({
+    url: 'user/updatePassword',
+    params: params,
+    method: 'get'
+  })
+}
+
+export const logout = () => {
+  return axios.request({
+    url: 'system/logout',
+    method: 'get'
+  })
+}
 
 //export const login = ({ userName, password }) => {
 //  const data = {

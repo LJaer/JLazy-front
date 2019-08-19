@@ -17,6 +17,7 @@
 
 <script>
 import './user.less'
+import {logout} from "@/api/user";
 import { mapActions } from 'vuex'
 export default {
   name: 'User',
@@ -31,14 +32,21 @@ export default {
     }
   },
   methods: {
-    ...mapActions([
-      'handleLogOut'
-    ]),
+    //...mapActions([
+    //  'handleLogOut'
+    //]),
     logout () {
-      this.handleLogOut().then(() => {
-        this.$router.push({
-          name: 'login'
-        })
+      //this.handleLogOut().then(() => {
+      //  this.$router.push({
+      //    name: 'login'
+      //  })
+      //})
+      logout().then(res=>{
+          alert(res)
+          if(res.data.data){
+            this.$Message.success("退出成功");
+            sessionStorage.removeItem("access_token")
+          }
       })
     },
     message () {
