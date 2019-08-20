@@ -95,6 +95,15 @@ export default [
         },
         component: () => import('@/view/department-manage')
       },
+      {
+        path: 'permission_manager',
+        name: '菜单权限管理',
+        meta: {
+          icon: '_dictionary',
+          title: '菜单权限管理'
+        },
+        component: () => import('@/view/permission-manage')
+      },
     ]
   },
   //{
