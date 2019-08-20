@@ -1,23 +1,15 @@
 <template>
   <div style="height:600px; margin-left:10px">
     <Row>
-      <Col span="2">
-        <Button @click="newDepartmentShow(1)" type="primary" icon="md-add">添加部门</Button>
-      </Col>
-      <Col span="3">
-        <Button
-          @click="newDepartmentShow(2)"
-          type="primary"
-          icon="md-add"
-          style="margin-left:15px;"
-        >添加一级部门</Button>
-      </Col>
-      <Col span="2">
-        <Button @click="batchDelete" type="primary" icon="md-add" style="margin-left:5px;">批量删除</Button>
-      </Col>
-      <Col span="2">
-        <Button @click="getDepList" type="primary" icon="md-add" style="margin-left:20px;">刷新</Button>
-      </Col>
+      <Button @click="newDepartmentShow(1)" type="primary" icon="md-add">添加部门</Button>
+      <Button
+        @click="newDepartmentShow(2)"
+        type="primary"
+        icon="md-add"
+        style="margin-left:10px;"
+      >添加一级部门</Button>
+      <Button @click="batchDelete" type="primary" icon="md-add" style="margin-left:10px;">批量删除</Button>
+      <Button @click="getDepList" type="primary" icon="md-add" style="margin-left:10px;">刷新</Button>
     </Row>
     <Row style="margin-top:20px">
       <Col span="6">
@@ -89,6 +81,12 @@
           </FormItem>
           <FormItem>
             <Button @click="updateDep" type="primary" icon="md-add">保存并修改</Button>
+            <Button
+              @click="refreshEditDepForm"
+              type="primary"
+              icon="md-add"
+              style="margin-left:10px;"
+            >重置</Button>
           </FormItem>
         </Form>
       </Col>
@@ -110,11 +108,9 @@
         :rules="departmentFormValidate"
         label-position="left"
       >
-        <div v-if="addFirstDepFlag !== true">
-          <FormItem label="上级部门名称">
-            <Input v-model="curSelectDepartment.title" disabled style="width:150px" />
-          </FormItem>
-        </div>
+        <FormItem label="上级部门名称">
+          <Input v-model="departmentForm.upDepartTitle" disabled style="width:150px" />
+        </FormItem>
         <FormItem label="部门名称" prop="name">
           <Input v-model="departmentForm.name" style="width:150px" />
         </FormItem>
@@ -161,7 +157,8 @@ export default {
       departmentData: [],
       //当前选择的部门
       curSelectDepartment: {
-        title: ""
+        title: "",
+        id: ""
       },
       //新增部门
       departmentModalTitle: "",
@@ -171,7 +168,8 @@ export default {
         name: null,
         code: null,
         sortOrder: null,
-        isAvailable: null
+        isAvailable: null,
+        upDepartTitle: null
       },
       departmentFormValidate: {
         // 表单验证规则
@@ -209,25 +207,31 @@ export default {
     },
     //展示新增部门弹窗
     newDepartmentShow(flag) {
-      this.departmentModalVisible = true;
       //新增子部门
       if (flag === 1) {
-        if (this.curSelectDepartment === null) {
+        if (this.$refs.departmentData.getSelectedNodes().length === 0) {
           this.$Message.error("请先点击选择一个部门");
           return;
         }
         this.departmentModalTitle = "新增子部门";
-
         this.departmentForm.id = null;
         this.departmentForm.parentId = this.curSelectDepartment.id;
+        this.departmentForm.upDepartTitle = this.curSelectDepartment.title;
+        console.log(this.curSelectDepartment.title);
       } else if (flag === 2) {
         this.departmentModalTitle = "新增一级部门";
+        this.departmentForm.upDepartTitle = "一级部门";
         this.addFirstDepFlag = true;
         this.departmentForm.parentId = 0;
       }
+      this.departmentModalVisible = true;
     },
     selectDepartment(selectNodes, curNode) {
       this.departmentForm.id = curNode.id;
+
+      this.curSelectDepartment.title = curNode.title;
+      this.curSelectDepartment.id = curNode.id;
+
       this.departmentEditForm.id = curNode.id;
       this.departmentEditForm.parentId = curNode.parentId;
       this.departmentEditForm.name = curNode.title;
@@ -238,7 +242,7 @@ export default {
       if (this.departmentEditForm.parentId === 0) {
         this.departmentEditForm.upDepartTitle = "一级部门";
       } else {
-        selectById({ id: this.curNode.parentId }).then(res => {
+        selectById({ id: this.departmentEditForm.parentId }).then(res => {
           this.departmentEditForm.upDepartTitle = res.data.data.name;
         });
       }
@@ -246,6 +250,10 @@ export default {
     //刷新新增部门表单
     refreshDepForm() {
       this.$refs.departmentForm.resetFields();
+    },
+    //重置编辑部门表单
+    refreshEditDepForm() {
+      this.$refs.departmentEditForm.resetFields();
     },
     //新增部门
     saveNewDep() {
