@@ -73,18 +73,28 @@ class HttpRequest {
       let msg = res.data.msg;
 
       // token 过期重新登陆
-      if(1002 === code || 1003 === code || 1004 === code){
-        sessionStorage.removeItem("access_token")
-      }
-
-      if (200 !== code) {
-        Message.error(msg);
-      } else {
-        return {
-          data,
-          status
+      if(code != undefined){
+        if(1002 === code || 1003 === code || 1004 === code){
+          sessionStorage.removeItem("access_token")
+        }
+        if (200 !== code) {
+          Message.error(msg);
+        } else {
+          return {
+            data,
+            status
+          }
         }
       }
+
+      return {
+        data,
+        status
+      }
+
+      
+
+      
     }, error => {
       this.destroy(url)
       let errorCode = error.response.data.status;
