@@ -19,7 +19,7 @@
             type="text"
             size="small"
             style="margin-right: 5px; color:#5cadff;"
-            @click="showEditDict(index)"
+            @click="showEditRolePer(index)"
           >角色权限</Button>
           <Button
             type="text"
@@ -45,6 +45,7 @@
       />
     </Row>
 
+    <!-- 新增或编辑角色 -->
     <Modal
       v-model="addOrEditRoleModal"
       :title="addOrEditRoleModalTile"
@@ -83,11 +84,28 @@
         </FormItem>
       </Form>
     </Modal>
+
+    <!-- 角色权限授权 -->
+    <Modal
+      v-model="editRolePerModal"
+      :title="editRolePerModalTile"
+      @on-cancel="clearEditRolePerForm"
+      @on-ok="updateRolePer"
+    >
+      <Tree ref="permissionsData" :data="permissionsData" show-checkbox></Tree>
+    </Modal>
   </div>
 </template>
 
 <script>
-import { getRolePage, saveOrUpdate, deleteById } from "@/api/role";
+import {
+  getRolePage,
+  saveOrUpdate,
+  deleteById,
+  updateRolePermission,
+  selectCurrentUserPer
+} from "@/api/role";
+import { getPerByParentId } from "@/api/permission";
 import moment from "moment";
 import { truncate } from "fs";
 
@@ -96,6 +114,13 @@ export default {
   props: {},
   data() {
     return {
+      permissionsData: [],
+      editRolePerModal: false,
+      editRolePerModalTile: "",
+      updateRolePermissionDTO: {
+        roleId: null,
+        perIs: []
+      },
       //角色分页查询相关
       roleColumns: [
         {
@@ -248,6 +273,56 @@ export default {
         if (res.data.data) {
           this.$Message.success("操作成功");
           this.getRoleList();
+        }
+      });
+    },
+    //显示编辑角色权限窗口
+    showEditRolePer(index) {
+      let userPers;
+      //获取当前用户权限
+      selectCurrentUserPer().then(res => {
+        userPers = res.data.data;
+      });
+
+      getPerByParentId({ parentId: 0 }).then(res => {
+        this.permissionsData = res.data.data;
+        this.curUserPerTreeSelect(this.permissionsData,userPers)
+        this.editRolePerModalTile = this.rolePageData[0].name;
+        this.editRolePerModal = true;
+        this.updateRolePermissionDTO.roleId = this.rolePageData[0].id;
+      });
+    },
+    curUserPerTreeSelect(childNodes,userPers){
+        //设置当前选中项
+        for (var i = 0; i < childNodes.length; i++) {
+          //判断是否有子节点
+          if(childNodes[i].children.length>0){
+            childNodes[i].expand = true;
+            this.curUserPerTreeSelect(childNodes[i].children,userPers);
+          }else{
+            for(var j = 0; j< userPers.length;j++){
+              if(userPers[j].id === childNodes[i].id){
+                childNodes[i].checked = true;
+              }
+            }
+          }
+        }
+    },
+    clearEditRolePerForm() {
+      this.permissionData = [];
+    },
+    updateRolePer() {
+      //获取当前所选的权限
+      var perIds = [];
+      var checkedNodes = this.$refs.permissionsData.getCheckedNodes();
+      for (var i = 0; i < checkedNodes.length; i++) {
+        perIds.push(checkedNodes[i].id);
+      }
+      this.updateRolePermissionDTO.perIds = perIds + "";
+      updateRolePermission(this.updateRolePermissionDTO).then(res => {
+        if (res.data.data) {
+          this.$Message.success("操作成功");
+          this.clearEditRolePerForm();
         }
       });
     }

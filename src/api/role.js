@@ -32,3 +32,24 @@ export const deleteById = (params) => {
     method: 'get'
   })
 }
+
+/**
+ * 更新角色权限
+ */
+export const updateRolePermission = (params) => {
+  return axios.request({
+    url: 'rolePermission/updateRolePermission',
+    params: params,
+    method: 'get'
+  })
+}
+
+/**
+ * 获取当前用户权限
+ */
+export const selectCurrentUserPer = () => {
+  return axios.request({
+    url: 'permission/selectCurrentUserPer',
+    method: 'get'
+  })
+}

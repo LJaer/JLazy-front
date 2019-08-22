@@ -42,20 +42,19 @@
             />
           </Row>
 
-          <Row style="margin-top:10px">
-            <div class="tree-bar" :style="{maxHeight: maxHeight}">
+          <Row style="margin-top:10px;maxHeight:500px; overflow: auto;">
               <Tree
-                ref="permissionsData"
-                :data="permissionsData"
-                show-checkbox
-                :check-strictly="!strict"
-                @on-select-change="changeSelect"
-              ></Tree>
-            </div>
+              ref="permissionsData"
+              :data="permissionsData"
+              show-checkbox
+              :check-strictly="!strict"
+              @on-select-change="changeSelect"
+            ></Tree>
+            
           </Row>
         </Col>
         <!-- 编辑节点 -->
-        <Col span="6" style="margin-left:50px">
+        <Col span="6" style="margin-left:50px;">
           <Form
             ref="perEditForm"
             :model="perEditForm"
@@ -80,6 +79,15 @@
             <FormItem label="排序值" prop="sortOrder">
               <InputNumber :max="1000" :min="0" v-model="perEditForm.sortOrder"></InputNumber>
               <span style="margin-left:5px">值越小越靠前，支持小数</span>
+            </FormItem>
+            <FormItem label="权限类型" prop="type">
+              <Select v-model="perEditForm.type" style="width:200px">
+                <Option
+                  v-for="item in perTypes"
+                  :value="item.value"
+                  :key="item.value"
+                >{{ item.label }}</Option>
+              </Select>
             </FormItem>
             <FormItem label="是否启用" prop="isAvailable">
               <i-switch
@@ -145,6 +153,11 @@
           <InputNumber :max="1000" :min="0" v-model="perModalForm.sortOrder"></InputNumber>
           <span style="margin-left:5px">值越小越靠前，支持小数</span>
         </FormItem>
+        <FormItem label="权限类型" prop="type">
+          <Select v-model="perModalForm.type" style="width:200px">
+            <Option v-for="item in perTypes" :value="item.value" :key="item.value">{{ item.label }}</Option>
+          </Select>
+        </FormItem>
         <FormItem label="是否启用" prop="isAvailable">
           <i-switch
             size="large"
@@ -174,6 +187,21 @@ export default {
   props: {},
   data() {
     return {
+      //菜单类型
+      perTypes: [
+        {
+          value: 1,
+          label: "菜单"
+        },
+        {
+          value: 2,
+          label: "按钮"
+        },
+        {
+          value: 3,
+          label: "接口"
+        }
+      ],
       searchKey: "",
       strict: true,
       parentNode: {
@@ -212,6 +240,7 @@ export default {
     getAllList() {
       getPerByParentId({ parentId: 0 }).then(res => {
         this.permissionsData = res.data.data;
+        this.expandOneOrAll(true, this.permissionsData);
       });
     },
     search() {
@@ -291,18 +320,17 @@ export default {
       if (name == "refresh") {
         this.getAllList();
       } else if (name == "expandOne") {
-        this.expandOneOrAll(false);
+        this.expandOneOrAll(false, this.permissionsData);
       } else if (name == "expandAll") {
-        this.expandOneOrAll(true);
+        this.expandOneOrAll(true, this.permissionsData);
       }
     },
     //展开或收缩tree
-    expandOneOrAll(flag) {
-      var treeNodes = this.permissionsData;
+    expandOneOrAll(flag, treeNodes) {
       for (var i = 0; i < treeNodes.length; i++) {
         treeNodes[i].expand = flag;
-        if (treeNodes[i].length > 0) {
-          expandOneOrAll(flag);
+        if (treeNodes[i].children.length > 0) {
+          this.expandOneOrAll(flag, treeNodes[i].children);
         }
       }
     },
@@ -310,7 +338,10 @@ export default {
       this.$refs.perEditForm.resetFields();
     },
     updatePer() {
-      saveOrUpdatePer(this.perEditForm).then(res => {
+      var params = {};
+      Object.assign(params, this.perEditForm);
+      params.children = null;
+      saveOrUpdatePer(params).then(res => {
         if (res.data.data) {
           this.$Message.success("操作成功");
           this.$refs.perModalForm.resetFields();

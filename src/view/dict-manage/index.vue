@@ -397,7 +397,7 @@ export default {
           if (this.modalType == 0) {
             // 添加 避免编辑后传入id等数据 记得删除
             delete this.dictForm.id;
-            saveOrUpdateDictData(this.dictForm).then(res => {
+            saveOrUpdateDict(this.dictForm).then(res => {
               this.submitLoading = false;
               if (res.data.status === "300") {
                 this.$Message.error("操作失败");
