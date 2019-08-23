@@ -14,7 +14,7 @@
         <i-switch v-model="draggable"></i-switch>
       </b>
       <Button @click="showContainerBDrawer = !showContainerBDrawer" type="primary" style="margin-left: 10px">{{ showContainerBDrawer ? '关闭' : '打开' }}容器内抽屉</Button>
-      <Button @click="showWindowBDrawer = true" type="primary" style="margin-left: 10px">打开全屏抽屉</Button>
+      <!-- <Button @click="showWindowBDrawer = true" type="primary" style="margin-left: 10px">打开全屏抽屉</Button> -->
     </div>
     <div class="drag-drawer-inner-box">
       <drag-drawer v-model="showContainerBDrawer"
