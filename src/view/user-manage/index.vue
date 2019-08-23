@@ -21,16 +21,13 @@
               @on-enter
             />
           </Form-item>
-          <Form-item label="部门" prop="department">
-            <Select
-              v-model="pageQueryParams.department"
-              placeholder="请选择"
-              clearable
-              style="width: 100px"
-              @on-change
-            >
-              <Option value="1">正常</Option>
-              <Option value="0">禁用</Option>
+          <Form-item label="部门" prop="departmentId">
+            <Select :placeholder="pageQueryParams.departmentName" style="width: 200px">
+              <Tree
+                ref="departmentData"
+                :data="departmentData"
+                @on-select-change="selectDepartment"
+              ></Tree>
             </Select>
           </Form-item>
 
@@ -131,7 +128,21 @@
       </Table>
     </Row>
 
-    <!-- 添加或更新字典 -->
+    <Row>
+      <Page
+        :total="pageTotal"
+        show-total
+        :page-size="pageQueryParams.pageSize"
+        :current="pageQueryParams.page"
+        show-elevator
+        show-sizer
+        style="margin-top:5px;padding-left:700px;"
+        @on-change="userIndexChange"
+        @on-page-size-change="userPageSizeChange"
+      />
+    </Row>
+
+    <!-- 添加或更新用户 -->
     <Modal
       :title="userModalTitle"
       v-model="userModalVisible"
@@ -166,9 +177,24 @@
         <FormItem label="备注" prop="description">
           <Input v-model="userForm.description" style="width:300px" />
         </FormItem>
-        <FormItem label="部门" prop="departmentId">
-          <Input v-model="userForm.departmentId" style="width:150px" />
-        </FormItem>
+        <Form-item label="部门" prop="departmentName">
+          <Select :placeholder="userForm.departmentName" style="width: 200px">
+            <Tree
+              ref="departmentData"
+              :data="departmentData"
+              @on-select-change="addOrUpdateUserSelectDep"
+            ></Tree>
+          </Select>
+        </Form-item>
+        <Form-item label="角色" prop="roleIds">
+          <Select v-model="userForm.roleIds" style="width:350px" multiple>
+            <Option
+              v-for="item in roles"
+              :value="item.id"
+              :key="item.id"
+            >{{ item.code + "—" +item.name }}</Option>
+          </Select>
+        </Form-item>
         <br />
         <FormItem label="性别" prop="sex">
           <i-switch size="large" v-model="userForm.sex" :true-value="1" :false-value="2">
@@ -256,13 +282,18 @@ import {
   updateUser,
   updatePassword
 } from "@/api/user";
+import { getDepByParentId } from "@/api/department";
+import { getAllRole, getUserRoleByUserId } from "@/api/role";
 import { start } from "repl";
 export default {
   components: {},
   props: {},
   data() {
     return {
-      //分页查询参数
+      //当前所有角色
+      roles: [],
+      departmentData: [],
+      pageTotal: 0,
       searchTime: "",
       pageQueryParams: {
         username: null,
@@ -272,6 +303,8 @@ export default {
         enabled: null,
         pageNum: 1,
         pageSize: 10,
+        departmentId: null,
+        departmentName: null,
         createTimeStart: null,
         createTimeEnd: null
       },
@@ -311,7 +344,7 @@ export default {
         },
         {
           title: "部门",
-          key: "department"
+          key: "departmentName"
         },
         {
           title: "最后登录时间",
@@ -349,6 +382,7 @@ export default {
       userModalTitle: "",
       userModalVisible: false,
       userForm: {
+        id: null,
         username: "",
         mobile: "",
         email: "",
@@ -356,7 +390,9 @@ export default {
         avatar: "",
         description: "",
         departmentId: "",
+        departmentName: "",
         sex: 1,
+        roleIds: [],
         enabled: 1,
         accountNonExpired: 1,
         accountNonLocked: 1,
@@ -389,7 +425,7 @@ export default {
     getUserPageData() {
       getByPageQueryDTO(this.pageQueryParams).then(res => {
         this.userPageData = res.data.data.records;
-        //console.log(res);
+        this.pageTotal = res.data.data.total;
       });
     },
     //搜索日期改变
@@ -413,24 +449,30 @@ export default {
         Object.assign(this.userForm, this.userPageData[index]);
         this.userForm.createTime = null;
         this.userForm.updateTime = null;
+        this.getUserRoleByUserId();
       }
     },
     //新增或编辑用户提交
     userFormOk() {
       if (this.userForm.id === null) {
         //创建新用户
+        console.log(this.userForm.roleIds);
+        this.userForm.roleIds = this.userForm.roleIds + "";
         createNewUser(this.userForm).then(res => {
           //弹窗显示
           let password = res.data.data.password;
           this.clearUserForm();
           alert("用户密码为：" + password);
+          this.getUserPageData();
         });
       } else {
         //更新用户
+        this.userForm.roleIds = this.userForm.roleIds + "";
         updateUser(this.userForm).then(res => {
           if (res.data.data) {
             this.$Message.success("操作成功");
             this.getUserPageData();
+            this.clearUserForm();
           }
         });
       }
@@ -455,25 +497,66 @@ export default {
       this.updatePasswordForm.id = this.userPageData[index].id;
     },
     //隐藏修改密码窗口
-    hideUpdatePasswordModeal(){
+    hideUpdatePasswordModeal() {
       this.updatePasswordModalVisible = false;
       this.updatePasswordForm.id = null;
     },
     //修改密码
-    toUpdatePassword(){
+    toUpdatePassword() {
       updatePassword(this.updatePasswordForm).then(res => {
-          if(res.data.data){
-            this.$Message.success("操作成功");
-            this.hideUpdatePasswordModeal();
-            this.$refs.updatePasswordForm.resetFields();
-          }else{
-            this.$Message.success("操作失败");
-          }
-      })
+        if (res.data.data) {
+          this.$Message.success("操作成功");
+          this.hideUpdatePasswordModeal();
+          this.$refs.updatePasswordForm.resetFields();
+        } else {
+          this.$Message.success("操作失败");
+        }
+      });
+    },
+    //搜索条件选择部门
+    selectDepartment(selectNodes, curNode) {
+      this.pageQueryParams.departmentId = curNode.id;
+      this.pageQueryParams.departmentName = curNode.title;
+    },
+    getDepList() {
+      getDepByParentId({ parentId: 0 }).then(res => {
+        this.departmentData = res.data.data;
+      });
+    },
+    //新增或更新modal选择部门
+    addOrUpdateUserSelectDep(selectNodes, curNode) {
+      this.userForm.departmentId = curNode.id;
+      this.userForm.departmentName = curNode.title;
+    },
+    //获取所有角色
+    getAllRole() {
+      getAllRole().then(res => {
+        this.roles = res.data.data;
+      });
+    },
+    getUserRoleByUserId() {
+      getUserRoleByUserId({ userId: this.userForm.id }).then(res => {
+        var userRoles = res.data.data;
+        var roleIds = [];
+        for (var i = 0; i < userRoles.length; i++) {
+          roleIds.push(userRoles[i].roleId);
+        }
+        this.userForm.roleIds = roleIds;
+      });
+    },
+    userIndexChange(index){
+      this.pageQueryParams.pageNum = index;
+      this.getUserPageData();
+    },
+    userPageSizeChange(index){
+      this.pageQueryParams.pageSize = index;
+      this.getUserPageData();
     }
   },
   created() {
     this.getUserPageData();
+    this.getDepList();
+    this.getAllRole();
   },
   mounted() {}
 };

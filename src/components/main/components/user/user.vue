@@ -42,7 +42,6 @@ export default {
       //  })
       //})
       logout().then(res=>{
-          alert(res)
           if(res.data.data){
             this.$Message.success("退出成功");
             sessionStorage.removeItem("access_token")

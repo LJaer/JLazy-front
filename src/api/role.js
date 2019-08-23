@@ -53,3 +53,25 @@ export const selectCurrentUserPer = () => {
     method: 'get'
   })
 }
+
+/**
+ * 获取当前所有角色
+ */
+export const getAllRole = () => {
+  return axios.request({
+    url: 'role/getAllRole',
+    method: 'get'
+  })
+}
+
+/**
+ * 获取用户所对应的用户角色id
+ */
+export const getUserRoleByUserId = (params) => {
+  return axios.request({
+    url: 'userRole/getUserRoleByUserId',
+    method: 'get',
+    params: params
+  })
+}
+
