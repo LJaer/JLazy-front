@@ -1,5 +1,5 @@
 <template>
-  <div style="padding:5px;background-color:rgb(240, 240, 240);height:650px">
+  <div style="padding:5px;background-color:rgb(240, 240, 240);height:680px">
     <Row>
       <Form
         ref="pageQueryParams"
