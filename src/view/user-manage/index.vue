@@ -21,7 +21,7 @@
               @on-enter
             />
           </Form-item>
-          <Form-item label="部门" prop="departmentId">
+          <Form-item label="部门" prop="departmentName">
             <Select :placeholder="pageQueryParams.departmentName" style="width: 200px">
               <Tree
                 ref="departmentData"
