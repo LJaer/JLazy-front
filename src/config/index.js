@@ -20,7 +20,7 @@ export default {
   baseUrl: {
     // dev: 'https://www.easy-mock.com/mock/5add9213ce4d0e69998a6f51/iview-admin/',
     dev: 'http://localhost:8085/JLazy/',
-    pro: 'https://produce.com'
+    pro: 'http://prod:8085/JLazy/'
   },
   /**
    * @description 默认打开的首页的路由name值，默认为home

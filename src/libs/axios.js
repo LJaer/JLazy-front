@@ -4,9 +4,6 @@ import {
   Message
 } from 'iview'
 
-// 统一请求路径前缀
-let base = "http://localhost:8085/JLazy/"
-
 // import { Spin } from 'iview'
 const addErrorLog = errorInfo => {
   const {
@@ -134,7 +131,7 @@ class HttpRequest {
     let access_token = sessionStorage.getItem("access_token");
     return axios({
       method: 'get',
-      url: `${base}${url}`,
+      url: `${this.baseUrl}${url}`,
       params: params,
       headers: {
         'access_token': access_token
@@ -146,7 +143,7 @@ class HttpRequest {
     let access_token = sessionStorage.getItem("access_token");
     return axios({
       method: 'post',
-      url: `${base}${url}`,
+      url: `${this.baseUrl}${url}`,
       data: params,
       transformRequest: [function (data) {
         let ret = '';
