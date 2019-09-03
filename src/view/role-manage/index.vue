@@ -280,16 +280,16 @@ export default {
     showEditRolePer(index) {
       let userPers;
       //获取当前用户权限
-      selectCurrentUserPer().then(res => {
+      selectCurrentUserPer({userId:this.rolePageData[index].id}).then(res => {
         userPers = res.data.data;
       });
-
+    
       getPerByParentId({ parentId: 0 }).then(res => {
         this.permissionsData = res.data.data;
         this.curUserPerTreeSelect(this.permissionsData,userPers)
         this.editRolePerModalTile = this.rolePageData[0].name;
         this.editRolePerModal = true;
-        this.updateRolePermissionDTO.roleId = this.rolePageData[0].id;
+        this.updateRolePermissionDTO.roleId = this.rolePageData[index].id;
       });
     },
     curUserPerTreeSelect(childNodes,userPers){
