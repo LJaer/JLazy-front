@@ -103,7 +103,8 @@ import {
   saveOrUpdate,
   deleteById,
   updateRolePermission,
-  selectCurrentUserPer
+  selectCurrentUserPer,
+  selectCurrentPerByRoleId
 } from "@/api/role";
 import { getPerByParentId } from "@/api/permission";
 import moment from "moment";
@@ -279,8 +280,8 @@ export default {
     //显示编辑角色权限窗口
     showEditRolePer(index) {
       let userPers;
-      //获取当前用户权限
-      selectCurrentUserPer({userId:this.rolePageData[index].id}).then(res => {
+      //获取当前角色权限
+      selectCurrentPerByRoleId({ roleId : this.rolePageData[index].id }).then(res => {
         userPers = res.data.data;
       });
     

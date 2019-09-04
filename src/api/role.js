@@ -47,9 +47,21 @@ export const updateRolePermission = (params) => {
 /**
  * 获取当前用户权限
  */
-export const selectCurrentUserPer = () => {
+export const selectCurrentPerByRoleId = (params) => {
+  return axios.request({
+    url: 'permission/selectCurrentPerByRoleId',
+    params: params,
+    method: 'get'
+  })
+}
+
+/**
+ * 获取当前角色权限
+ */
+export const selectCurrentUserPer = (params) => {
   return axios.request({
     url: 'permission/selectCurrentUserPer',
+    params: params,
     method: 'get'
   })
 }
